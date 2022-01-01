@@ -2,6 +2,7 @@
 
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import org.w3c.dom.Node;
 
 import java.awt.Color;
 import java.util.Collection;
@@ -155,8 +156,15 @@ class ThreeTenPrim implements ThreeTenAlg {
 		//vertex with the minimum ID return it. This may not be 
 		//the node with ID 0 because that node could have been deleted
 		//using the graph editor.
-		
-		//YOUR_CODE_HERE
+
+		ArrayList<GraphNode> nodes = (ArrayList<GraphNode>) graph.getVertices();
+		minIdNode = nodes.get(0);
+
+		for (int i = 1; i < nodes.size(); i++)
+		{
+			if (nodes.get(i).compareTo(minIdNode) < 0)
+				minIdNode = nodes.get(i);
+		}
 		
 		return minIdNode;
 	}
@@ -193,6 +201,10 @@ class ThreeTenPrim implements ThreeTenAlg {
 			//if the vertex is the minimum ID node, set
 			//it's cost (in it's wrapper class) appropriately
 			//for the cost of the starting node in Prim's algorithm
+			if(v.equals(minIdNode))
+			{
+				n.cost = 0;
+			}
 			
 			graphNodesToAlgNodes.put(v,n);
 			queue.add(n);
@@ -294,8 +306,7 @@ class ThreeTenPrim implements ThreeTenAlg {
 		//replace the following line of code so that the current min
 		//is set to the next thing from the queue (removing it from
 		//the queue);
-		NodeForAlg currMin = null;
-		
+		NodeForAlg currMin = queue.remove();
 		//set color of next node and path to it (if not first node)
 		currMin.graphNode.setColor(COLOR_ACTIVE_NODE_1);
 		
@@ -334,7 +345,7 @@ class ThreeTenPrim implements ThreeTenAlg {
 			//will be set appropriately for Prim's algorithm. (Note: you may want
 			//to read the code around this location to determine the value that
 			//goes here.)
-			int newCost = -1;
+			int newCost = e.getWeight();
 			
 			if(!algNode.done && newCost < algNode.cost) {
 				

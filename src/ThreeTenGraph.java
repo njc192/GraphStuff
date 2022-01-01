@@ -15,13 +15,15 @@ import org.apache.commons.collections15.Factory;
 
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 
 class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<GraphNode,GraphEdge> {
 	//you may not have any other class variables, only this one
 	//if you make more class variables your graph class will receive a 0,
 	//no matter how well it works
-	private static final int MAX_NUMBER_OF_NODES = 10;
+	private static final int MAX_NUMBER_OF_NODES = 200;
 	
 	
 	//you may not have any other instance variables, only this one
@@ -47,8 +49,24 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
 		
 		//Hint: this method returns a Collection, look at the imports for
 		//what collections you could return here.
+		HashSet<GraphEdge> edges = new HashSet<>();
+
+		for (int i = 0; i < storage.length; i ++)
+		{
+			for ( int j = 0; j < storage[i].length; j++)
+			{
+				if (i != j)
+				{
+					if (storage[i][j] != null)
+					{
+						GraphEdge edge = (GraphEdge) storage[i][j];
+						edges.add(edge);
+					}
+				}
+			}
+		}
 		
-		return null;
+		return edges;
 	}
     
     /**
@@ -62,8 +80,16 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
 		
 		//Hint: this method returns a Collection, look at the imports for
 		//what collections you could return here.
-		
-		return null;
+		ArrayList<GraphNode> arr = new ArrayList<>();
+		for (int i = 0; i < storage.length; i++)
+		{
+			if (storage[i][i] != null)
+			{
+				arr.add((GraphNode) storage[i][i]);
+			}
+		}
+
+		return arr;
 	}
     
     /**
@@ -120,17 +146,17 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
     /**
      * Returns the collection of vertices which are connected to vertex
      * via any edges in this graph.
-     * If vertex is connected to itself with a self-loop, then 
+     * If vertex is connected to itself with a self-loop, then
      * it will be included in the collection returned.
      * 
      * @param vertex the vertex whose neighbors are to be returned
-     * @return  the collection of vertices which are connected to vertex, 
+     * @return  the collection of vertices which are connected to vertex,
      * or null if vertex is not present
      */
     public Collection<GraphNode> getNeighbors(GraphNode vertex) {
-		//O(n) amortized where n is the max number of vertices in the graph
-		
-		return null;
+		Collection<GraphNode> nodes = new ArrayList<>();
+		dfsHelper(vertex,new boolean[MAX_NUMBER_OF_NODES],nodes);
+		return nodes;
 	}
     
     /**
@@ -145,7 +171,7 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
     public int getNeighborCount(GraphNode vertex) {
 		//O(n) where n is the max number of vertices in the graph
 		
-		return -1;
+		return getIncidentEdges(vertex).size();
 	}
     
     /**
@@ -157,8 +183,21 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
      */
     public Collection<GraphEdge> getIncidentEdges(GraphNode vertex) {
 		//O(n) amortized where n is the max number of vertices in the graph
-		
-		return null;
+		ArrayList<GraphEdge> edges = new ArrayList<>();
+
+		for (int i = 0; i < storage.length; i++)
+		{
+			if (i != vertex.id)
+			{
+				if (storage[i][vertex.id] != null)
+				{
+					GraphEdge edge = (GraphEdge) storage[i][vertex.id];
+					edges.add(edge);
+				}
+			}
+
+		}
+		return edges;
 	}
     /**
      * Returns the endpoints of edge as a Pair<GraphNode>.
@@ -207,8 +246,7 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
      */
     public GraphEdge findEdge(GraphNode v1, GraphNode v2) {
 		//O(1)
-		
-		return null;
+		return (GraphEdge) storage[v1.id][v2.id];
 	}
 
     /**
@@ -223,7 +261,17 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
      */
     public boolean isIncident(GraphNode vertex, GraphEdge edge) {
 		//O(n) where n is the max number of vertices in the graph
-		
+		for (int i = 0; i < storage.length; i++)
+		{
+			if (storage[i][vertex.id] != null)
+			{
+				GraphEdge e = (GraphEdge) storage[i][vertex.id];
+				if (edge.equals(e))
+				{
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
@@ -280,7 +328,26 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
      */
     public boolean removeEdge(GraphEdge edge) {
 		//O(n^2) where n is the max number of vertices in the graph
-		
+		Pair<GraphNode> pair;
+		try
+		{
+			pair = getEndpoints(edge);
+			GraphNode v1 = pair.getFirst();
+			GraphNode v2 = pair.getSecond();
+
+			storage[v1.id][v2.id] = null;
+			storage[v2.id][v1.id] = null;
+			return true;
+		}
+		catch (IllegalArgumentException e)
+		{
+			System.out.println("fail");
+		}
+
+
+
+
+
 		return false;
 	}
     
@@ -302,8 +369,20 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
      */
     public boolean removeVertex(GraphNode vertex) {
 		//O(n) where n is the max number of vertices in the graph
-		
-		return false;
+		if (vertex == null)
+		{
+			return false;
+		}
+		if (storage[vertex.id][vertex.id] == null)
+			return false;
+
+		ArrayList<GraphEdge> edges = (ArrayList<GraphEdge>) getIncidentEdges(vertex);
+		for (int i = 0; i < edges.size(); i++)
+		{
+			removeEdge(edges.get(i));
+		}
+		storage[vertex.id][vertex.id] = null;
+		return true;
 	}
 	
 	/**
@@ -326,7 +405,8 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
 		//this line to that method (just put it as the first line in
 		//the helper function).
 		RecursionCheck.hasRecursion(); //DO NOT REMOVE THIS LINE
-		String s = dfsHelper(curr,visited);
+		ArrayList<GraphNode> nodes = new ArrayList<>();
+		dfsHelper(curr,visited,nodes);
 
 
 		if (restart)
@@ -339,13 +419,19 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
 					{
 						GraphNode v = (GraphNode) storage[i][i];
 						visited[i] = true;
-						s+= v.id + " " + dfsHelper(v,visited);
+						nodes.add(v);
+						dfsHelper(v,visited,nodes);
 					}
 				}
 			}
 		}
-
-		return s;
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			sb.append(nodes.get(i).getId());
+			sb.append(" ");
+		}
+		return sb.toString();
 
 //
 //		//This method is required to be recursive.
@@ -355,11 +441,10 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
 //		return null;
 	}
 
-	private String dfsHelper(GraphNode curr, boolean[] visited)
+	private void dfsHelper(GraphNode curr, boolean[] visited, Collection<GraphNode> n)
 	{
 		RecursionCheck.hasRecursion(); //DO NOT REMOVE THIS LINE
 
-		String s = "";
 
 		// if curr == null find the smallest vertex we have not visited
 		if (curr == null)
@@ -374,7 +459,8 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
 				}
 			}
 			visited[curr.id] = true;
-			s+= curr.id + " " + dfsHelper(curr,visited);
+			n.add(curr);
+			dfsHelper(curr,visited,n);
 
 		}
 
@@ -391,25 +477,30 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
 					if (!visited[v1.id])
 					{
 						visited[v1.id] = true;
-						s += v1.id + " " + dfsHelper(v1,visited);
+						n.add(v1);
+						dfsHelper(v1,visited,n);
 					}
 
 					GraphNode v2 = nodes.getSecond();
 					if (!visited[v2.id])
 					{
 						visited[v2.id] = true;
-						s +=  v2.id + " " + dfsHelper(v2,visited);
+						n.add(v2);
+						dfsHelper(v2,visited,n);
 					}
 				}
 			}
 
 		}
-
-
-		return s;
-
 	}
 
+	public static void printCollection(Collection<? extends GraphComp> coll)
+	{
+		for (GraphComp val : coll)
+		{
+			System.out.println(val.getId());
+		}
+	}
 	//********************************************************************************
 	//   testing code goes here... edit this as much as you want!
 	//********************************************************************************
@@ -460,10 +551,13 @@ class ThreeTenGraph implements Graph<GraphNode,GraphEdge>, UndirectedGraph<Graph
 			System.out.println("Yay 2");
 		}
 
+		System.out.println(graph.toString());
 		if(graph.toString().trim().equals("0 1 2 3 9 8 4 5 6 7")) {
 			System.out.println("Yay 3");
 		}
-		
+
+
+
 		//lot more testing here...
 		
 		//If your graph "looks funny" you probably want to check:

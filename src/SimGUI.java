@@ -1,6 +1,7 @@
 //TODO: Nothing, all done.
 
 import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -352,8 +353,9 @@ class SimGUI {
 			*/
 		}
 		else {
+			Factory<UndirectedGraph<GraphNode,GraphEdge>> f = ThreeTenGraph.getFactory();
 			ErdosRenyiGenerator<GraphNode, GraphEdge> gen = new ErdosRenyiGenerator<>(
-					ThreeTenGraph.<GraphNode,GraphEdge>getFactory(),
+					f,
 					nodeFactory, edgeFactory,
 					this.numNodes,this.prob
 				);
